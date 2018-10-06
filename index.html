@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Vue</title>
+	<style>
+		#test {
+			display: none;
+		}
+
+		.dark {
+			background: black;
+			color: #aaa;
+		}
+
+		.dark a {
+			color: #aaf;
+		}
+
+		.thick {
+			border: 5px solid green;
+		}
+	</style>
+</head>
+<body>
+	<div id="test">
+		<h1>{{message}}</h1>
+		Time: {{h}}, People: {{people.length}}
+		<div v-bind:class="{ dark: lightsOff, thick: people.length % 2 == 0 }">
+			<label>Свет выключен: <input type="checkbox" v-model="lightsOff"></label>	
+		</div>
+		<ul v-if="people.length > 0" v-bind:class="{ dark: lightsOff }">
+			<li v-for="person, index in people">
+				{{index}} - 
+				<a v-bind:href="'https://www.google.ru/search?q=' + encodeURIComponent(person)">{{person}}</a>
+				{{person.length * 4}}
+				<button v-on:click="removeName(index)">X</button>
+			</li>
+		</ul>
+		<three-way-button value1="111" value2="gr222een" value3="3333"></three-way-button>
+		<div v-if="people.length == 0">
+			<h3>Ни одного человека</h3>
+		</div>
+		<div>{{newName.toUpperCase()}}</div>
+		<label>Введите имя: <input type="text" v-model="newName" placeholder="имя"></label> 
+		<button v-on:click="addName">Добавить</button>
+
+		<three-way-button value1="red" value2="green" value3="Хоровод" v-on:threeclick="lightsOff = !lightsOff"></three-way-button>
+	</div>
+
+	<script type="text/x-template" id="button-template">
+		<div>
+			<button>1 - {{value1}}</button>
+			<button v-on:click="changeButton">2 - {{value2}}</button>
+			<button>3 - {{value3}}</button>
+		</div>
+	</script>
+
+	<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+	<script>
+		Vue.component('three-way-button', {
+			template: '#button-template',
+			props: ['value1', 'value2', 'value3'],
+			methods: {
+				changeButton: function() {
+					this.$emit('threeclick');
+				}
+			}
+		});
+
+		var settings = {
+			el: 'html > body > #test',
+			data: {
+				message: 'Hello Vue!',
+				h: 14,
+				people: [
+					//"Донателло", "Микельанджело", "Рафаэль", "Леонардо"
+				],
+				newName: "",
+				lightsOff: false
+			},
+			methods: {
+				addName: function() {
+					this.people.push(this.newName);
+					this.newName = "";
+					this.saveToDb();
+				},
+				removeName: function(id) {
+					this.people.splice(id, 1);
+					this.saveToDb();
+				},
+				saveToDb: function() {
+					/*ajax("/savepeople", this.people, function(r) {
+						console.log("People saved");
+					});*/
+				}
+			},
+			mounted: function() {
+				/*ajax('/getpeople', null, function(r) {
+					this.people = JSON.parse(r);
+				});*/
+			}
+		};
+
+		var app = new Vue(settings);
+
+		function timerUpdate() {
+			app.h++;
+		}
+
+		setInterval(timerUpdate, 1000);
+
+		document.querySelector("#test").style.display = 'block';
+
+		function ajax(url, data, callback) {
+			var xhr = new XMLHttpRequest();
+			xhr.open("POST", url, true);
+			xhr.onload = function(response) {
+				callback(response);
+			}
+			xhr.send(JSON.stringify(data));
+		}
+	</script>
+</body>
+</html>
